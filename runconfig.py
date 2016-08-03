@@ -20,7 +20,6 @@ APP_NAME = os.environ['APP_NAME']
 MODE = os.environ['MODE']
 MODE = MODE.upper()
 
-
 # Get the OS version
 RHELDISTRO = False
 if os.path.isfile('/etc/redhat-release'):
@@ -39,7 +38,7 @@ CHECKFILE = "index.php"
 CHECKFILE_PATH = "/var/www/html/"
 
 # Full path to the file that the script will check if the application has already been configured.
-CHECKFILE_PATH = os.join(CHECKFILE_PATH + APP_NAME + "/", CHECKFILE)
+CHECKFILE_PATH = os.path.join(CHECKFILE_PATH + APP_NAME + "/", CHECKFILE)
 
 # APPVER will correspond to the APPLICATION VERSION such as WIKIVER or master.zip.
 # Its the file that gets dumped in /var/www/html and gets moved to /var/www/html/APP_NAME
@@ -63,13 +62,13 @@ else:
 ##################################################################
 # ***********************  CONFIGURE MODE  ***********************
 ##################################################################
-app_mode = MODE(DEPLIST)
+app_mode = Mode()
 
 if "DATAVOL" in MODE:
-    app_mode.datavol()
+    app_mode.datavol(DEPLIST)
 else:
     # Check to see if the environment has already been configured
-    CONFIGURED = app_mode.config_verif()
+    CONFIGURED = app_mode.config_verif(CHECKFILE_PATH)
 
 ##################################################################
 # ***********************  CONFIGURE APP  ***********************
@@ -82,6 +81,8 @@ if not CONFIGURED:
     configuration.apache_config()
     # Generate Certificates
     configuration.apache_certs()
+    # Create the php.info page
+    configuration.apache_init()
 
 # Set Apache Envars
 configuration.apache_envvars()
@@ -90,9 +91,8 @@ configuration.apache_envvars()
 configuration.apache_start()
 
 # Remove config scripts
-config_logger.write_console("Removing configuration scripts" "")
-config_logger.log_console("Removing configuration scripts" "")
-os.popen("sed -i '/\/tmp\/.\/.runconfig/d' /root/.bashrc")
+config_logger.write_log_console("Removing configuration scripts", "")
+os.popen("sed -i '/\/tmp\/.\/.runconfig.py/d' /root/.bashrc")
 
 # Mark step complete
 config_logger.step_complete()

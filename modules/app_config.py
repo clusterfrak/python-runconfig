@@ -12,6 +12,11 @@ from modules.log import Log
 # Instantiate the custom console logger.
 config_logger = Log()
 
+"""
+APACHE CLASS
+Class that will handle all things associated with setting up and configuring the apache web service.
+"""
+
 
 class Apache():
     """Class to configure the apache"""
@@ -38,7 +43,6 @@ class Apache():
             self.cert_path = "/etc/pki/tls/certs/"
             self.key_path = "/etc/pki/tls/private/"
             self.env_var_path = "/etc/sysconfig/httpd"
-            self.mysql_pkg = "mysql-server"
         else:
             self.package_mgr = "apt-get -y remove --purge"
             self.apache_user = "www-data"
@@ -51,23 +55,25 @@ class Apache():
             self.cert_path = "/etc/ssl/certs/"
             self.key_path = "/etc/ssl/private/"
             self.env_var_path = "/etc/apache2/envvars"
-            self.mysql_pkg = "mysql-server-5.5"
 
     def apache_init(self):
         """Method to configure the application if it has not been configured before"""
-        config_logger.write_console("Configuring Apache for the first time..." "")
-        config_logger.log_console("Configuring Apache for the first time..." "")
+        config_logger.write_log_console("Configuring Apache for the first time...", "")
         os.makedirs("/var/www/html/" + self.app_name)
-        with open("/var/www/html/" + self.app_name + "/index.php") as index:
-            index.write("<?php phpinfo() ?>")
-            index.close()
+        try:
+            with open("/var/www/html/" + self.app_name + "/index.php") as index:
+                index.write("<?php phpinfo() ?>")
+                index.close()
+        except Exception as e:
+            print("Could not create /var/www/html/" + self.app_name + "/index.php")
+            print(e)
+
         # Mark step complete
         config_logger.step_complete()
 
     def apache_config(self):
         """Configure Apache"""
-        config_logger.write_console("Configuring Apache config files..." "")
-        config_logger.log_console("Configuring Apache config files..." "")
+        config_logger.write_log_console("Configuring Apache config files...", "")
 
         # Backup the original File
         config_logger.write_log("Backing up the Apache config file")
@@ -80,27 +86,39 @@ class Apache():
 
         # Rename the application apache config file
         config_logger.write_log("Renaming the Apache application config file")
-        move(self.apache_app_dir + self.apache_app_conf, self.apache_app_dir + self.app_name + ".conf")
+        if os.path.isfile(self.apache_dir + "sites-available/" + self.apache_app_conf):
+            move(self.apache_dir + "sites-available/" + self.apache_app_conf, self.apache_dir + "sites-available/" + self.app_name + ".conf")
 
         # Remove default configs if debian based distro
         if not self.rhel_distro:
             config_logger.write_log("Disabling default debian based config files")
-            os.remove(self.apache_app_dir + "/*")
+            if os.path.isfile(self.apache_app_dir + "000-default.conf"):
+                os.unlink(self.apache_app_dir + "000-default.conf")
             config_logger.write_log("Enabling the Apache application config")
-            os.symlink(self.apache_dir + "sites-available/" + self.app_name + ".conf", self.apache_app_dir + self.app_name + ".conf")
+            if not os.path.isfile(self.apache_app_dir + self.app_name + ".conf"):
+                os.symlink(self.apache_dir + "sites-available/" + self.app_name + ".conf", self.apache_app_dir + self.app_name + ".conf")
 
         # Set the servername
         config_logger.write_log("Setting server hostname in the Apache server config")
         # os.popen("sed -i 's/#ServerName\ www\.example\.com\:80/ServerName\ www\.'$APP_NAME'\:80/g")
         if self.rhel_distro:
-            with open(self.apache_dir + self.apache_conf, "r") as apache_conf:
-                lines = apache_conf.readlines()
-            with open(self.apache_dir + self.apache_conf, "w") as apache_conf:
-                for line in lines:
-                    apache_conf.write(re.sub(r'^#ServerName www.example.com:80', 'ServerName www' + self.app_name + ':80', line))
+            try:
+                with open(self.apache_dir + self.apache_conf, "r") as apache_conf:
+                    lines = apache_conf.readlines()
+                with open(self.apache_dir + self.apache_conf, "w") as apache_conf:
+                    for line in lines:
+                        apache_conf.write(re.sub(r'^#ServerName www.example.com:80', 'ServerName www' + self.app_name + ':80', line))
+                        apache_conf.close()
+            except Exception as e:
+                print("Could not open or write to " + self.apache_dir + self.apache_conf)
+                print(e)
         else:
-            with open(self.apache_dir + self.apache_conf, "a") as apache_conf:
-                apache_conf.write('ServerName www.' + self.app_name + ':80')
+            try:
+                with open(self.apache_dir + self.apache_conf, "a") as apache_conf:
+                    apache_conf.write('ServerName www.' + self.app_name + ':80')
+            except Exception as e:
+                print("Could not write to " + self.apache_dir + self.apache_conf)
+                print(e)
 
         # Mark step complete
         config_logger.step_complete()
@@ -109,14 +127,11 @@ class Apache():
         """Generate Apache Self Signed Certificates"""
         # Check to see if a certificate already exists
         if os.path.isfile(self.cert_path + "/" + self.app_name + ".crt"):
-            config_logger.write_console("Existing application certificate detected..." "Skipping...")
-            config_logger.write_log("Existing application certificate detected..." "Skipping...")
+            config_logger.write_log_console("Existing application certificate detected...", "Skipping...")
 
         # If an existing certificate was not found, then generate one for the app.
         else:
-            config_logger.write_console("Generate SSL Cert and Configure Apache..." "")
-            config_logger.write_log("Generate SSL Cert and Configure Apache..." "")
-
+            config_logger.write_log_console("Generate SSL Cert and Configure Apache...", "")
             config_logger.write_log("Generating SSL Key....")
 
             # Create a key pair
@@ -127,9 +142,9 @@ class Apache():
             cert = crypto.X509()
             cert.get_subject().C = "US"
             cert.get_subject().ST = "One of the 50"
-            cert.get_subject().L = ""
+            cert.get_subject().L = "US"
             cert.get_subject().O = self.app_name
-            cert.get_subject().OU = ""
+            cert.get_subject().OU = self.app_name
             cert.get_subject().CN = gethostname()
             cert.set_serial_number(1000)
             cert.gmtime_adj_notBefore(0)
@@ -146,40 +161,57 @@ class Apache():
         config_logger.write_log("Set certificate value in apache config file")
 
         # Change the apache config to use the the existing certificate.
-        with open(self.apache_app_dir + self.apache_app_conf, "r") as app_conf:
-            lines = app_conf.readlines()
-        with open(self.apache_app_dir + self.apache_app_conf, "w") as app_conf:
-            for line in lines:
-                app_conf.write(re.sub(r'^localhost.crt', self.app_name + ".crt", line))
-                app_conf.write(re.sub(r'^localhost.key', self.app_name + ".key", line))
+        try:
+            with open(self.apache_app_dir + self.app_name + ".conf", "r") as app_conf:
+                lines = app_conf.readlines()
+            with open(self.apache_app_dir + self.app_name + ".conf", "w") as app_conf:
+                for line in lines:
+                    app_conf.write(re.sub(r'^localhost.crt', self.app_name + ".crt", line))
+                    app_conf.write(re.sub(r'^localhost.key', self.app_name + ".key", line))
+                    app_conf.close()
+        except Exception as e:
+            print("Could not read or write to " + self.apache_app_dir + self.app_name)
+            print(e)
 
         # Mark step complete
         config_logger.step_complete()
 
     def apache_envvars(self):
         """Configure Apache Environment Varaiables"""
-        config_logger.write_console("Setting Apache variables to allow" "variable substitution in the apache config")
-        config_logger.write_log("Setting Apache variables to allow" "variable substitution in the apache config")
+        config_logger.write_log_console("Setting Apache variables to allow", "variable substitution in the apache config")
 
         config_logger.write_log("Writing apache variables to " + self.env_var_path)
-        with open(self.env_var_path, "w") as envars:
-            envars.write("# Set Apache Environment Variables that will be passed to Apache via /etc/sysconfig/httpd/PassEnv (Must have a2enmod env enabled")
-            envars.write("APP=" + self.app_name)
-            envars.write("SVRALIAS=" + os.environ['APACHE_SVRALIAS'])
-            envars.write("HOSTNAME=" + gethostname())
+        try:
+            with open(self.env_var_path, "w") as envars:
+                envars.write("# Set Apache Environment Variables that will be passed to Apache via /etc/sysconfig/httpd/PassEnv (Must have a2enmod env enabled\n\n")
+                envars.write("APP=" + self.app_name + "\n")
+                envars.write("SVRALIAS=" + os.environ['APACHE_SVRALIAS'] + "\n")
+                envars.write("HOSTNAME=" + gethostname() + "\n")
 
-            config_logger.write_log("Exporting Apache Variables to " + self.env_var_path)
-            envars.write("# Export the variables to sysconfig/PassEnv")
-            envars.write("export APP SVRALIAS HOSTNAME\n")
+                config_logger.write_log("Exporting Apache Variables to " + self.env_var_path)
+                envars.write("# Export the variables to sysconfig/PassEnv\n")
+                envars.write("export APP SVRALIAS HOSTNAME\n")
+                envars.close()
+        except Exception as e:
+            print("Could not write to " + self.env_var_path)
+            print(e)
+
+        # Mark step complete
+        config_logger.step_complete()
 
     def apache_start(self):
         """Start Apache Web Services"""
-        config_logger.write_console("Staring Apache Web Services...")
-        config_logger.write_log("Staring Apache Web Services...")
+        config_logger.write_log_console("Staring Apache Web Services...", "")
 
-        with open("/root/.bashrc", "a") as bashrc:
-            bashrc.write("service " + self.apache_binary + " start")
+        # Add the service start to the bashrc file.
+        try:
+            with open("/root/.bashrc", "a") as bashrc:
+                bashrc.write("service " + self.apache_binary + " start")
+        except Exception as e:
+            print("Could not modify the root bashrc file")
+            print(e)
 
+        # Start Apache.
         os.popen("service " + self.apache_binary + " start")
 
         # Mark step complete
