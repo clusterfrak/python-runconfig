@@ -36,6 +36,10 @@ APPLICATION = "Apache"
 
 # File that the script will check to see if the application is already configured.
 CHECKFILE = "index.php"
+CHECKFILE_PATH = "/var/www/html/"
+
+# Full path to the file that the script will check if the application has already been configured.
+CHECKFILE_PATH = os.join(CHECKFILE_PATH + APP_NAME + "/", CHECKFILE)
 
 # APPVER will correspond to the APPLICATION VERSION such as WIKIVER or master.zip.
 # Its the file that gets dumped in /var/www/html and gets moved to /var/www/html/APP_NAME
@@ -49,9 +53,6 @@ DEB_DEPLIST = "apache2 php5 php5-cli php5-common php5-mysql php5-xmlrpc imagemag
 #####################################################################
 # ***********************  VARAIABLE VALUES  ***********************
 #####################################################################
-
-# Full path to the file that the script will check if the application has already been configured.
-CHECKFILE_PATH = os.join("/var/www/html" + APP_NAME + "/", CHECKFILE)
 
 # Create a list of packages that get installed
 if RHELDISTRO:
@@ -76,11 +77,11 @@ else:
 # Instantiate the Application Module
 configuration = Apache()
 
-# Configure apache
-configuration.apache_config()
-
-# Generate Certificates
-configuration.apache_certs()
+if not CONFIGURED:
+    # Configure apache
+    configuration.apache_config()
+    # Generate Certificates
+    configuration.apache_certs()
 
 # Set Apache Envars
 configuration.apache_envvars()

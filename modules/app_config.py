@@ -1,6 +1,6 @@
 """Module to configure various container applications"""
 # Import required modules
-import os  # Used to get environment variables.
+import os  # Used for various os level calls
 import re  # Used for word substitiution
 from shutil import copyfile, move
 from OpenSSL import crypto, SSL  # pylint: disable=unused-import
