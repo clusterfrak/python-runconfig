@@ -2,14 +2,18 @@
 import os  # Used for various os level calls
 
 # Import custom modules
+from modules.globals import Globals
 from modules.log import Log
 from modules.mode import Mode
 
-# Import the application module
+# Import the application modules
 from modules.app_config import Apache
 
+# Instantiate the global variables.
+GLOBALS = Globals()
+
 # Instantiate the custom console logger.
-config_logger = Log()
+INSTALL_LOG = Log()
 
 #####################################################################
 # ***********************  OS Env Variables  ***********************
@@ -19,11 +23,6 @@ config_logger = Log()
 APP_NAME = os.environ['APP_NAME']
 MODE = os.environ['MODE']
 MODE = MODE.upper()
-
-# Get the OS version
-RHELDISTRO = False
-if os.path.isfile('/etc/redhat-release'):
-    RHELDISTRO = True
 
 #####################################################################
 # *************************  MODIFY VALUES  *************************
@@ -54,7 +53,7 @@ DEB_DEPLIST = "apache2 php5 php5-cli php5-common php5-mysql php5-xmlrpc imagemag
 #####################################################################
 
 # Create a list of packages that get installed
-if RHELDISTRO:
+if GLOBALS.is_rhel:
     DEPLIST = CENT_DEPLIST
 else:
     DEPLIST = DEB_DEPLIST
@@ -68,7 +67,7 @@ if "DATAVOL" in MODE:
     app_mode.datavol(DEPLIST)
 else:
     # Check to see if the environment has already been configured
-    CONFIGURED = app_mode.config_verif(CHECKFILE_PATH)
+    CONFIGURED = app_mode.config_verify(CHECKFILE_PATH)
 
 ##################################################################
 # ***********************  CONFIGURE APP  ***********************
@@ -91,8 +90,8 @@ configuration.apache_envvars()
 configuration.apache_start()
 
 # Remove config scripts
-config_logger.write_log_console("Removing configuration scripts", "")
+INSTALL_LOG.write_log_console("Removing configuration scripts", "")
 os.popen("sed -i '/\/tmp\/.\/.runconfig.py/d' /root/.bashrc")
 
 # Mark step complete
-config_logger.step_complete()
+INSTALL_LOG.step_complete()

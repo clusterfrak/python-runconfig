@@ -1,0 +1,11 @@
+globals.py
+==================
+
+1 methods 
+
+is_rhel()
+This singleton method will check to see if the /etc/redhat-release file exists, if it does, it will configure all the things based on a redhat distribution file and package structure. If not, it will default to debian. Because this method is written in a singleton class, it can be instantiated from any module. 
+Examples
+global_variables = Globals()
+if global_variables.is_rhel():
+    print("I am a RHEL based distro")

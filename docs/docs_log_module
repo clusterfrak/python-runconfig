@@ -1,0 +1,28 @@
+log.py
+==================
+
+3 methods 
+
+write_log(msg)
+This method will take an input message and write an entry to the logfile in the format of datetime: message.
+Examples
+INSTALL_LOG = LOG()
+INSTALL_LOG.write_log("Generating container certifiate")
+
+write_log_console(msg1, msg2):
+This method will take 2 parmeter messages and print them to the console as well as to the logfile in a nice format such as follows:
+print("**************************************************")
+print(msg1)
+print(msg2)
+print("**************************************************")
+
+Examples
+INSTALL_LOG = LOG()
+INSTALL_LOG.write_log_console("Existing Certificate exists", "Skipping")
+
+step_complete
+This method simply prints that the installation step or stage has been completed to both the console and the logfile.
+
+Examples
+INSTALL_LOG = LOG()
+INSTALL_LOG.step_complete()

@@ -1,0 +1,20 @@
+mode.py
+==================
+
+2 methods 
+
+config_verify(checkfile)
+This method will take a file path and check to ensure that the file does exist. Its purpose is to quick check to see if the container has previously been configured. Mediawiki for example creates a file called LocalSettings.php. Checking for the existance of this file on contaier startup will ensure that the configuration setup is not ran again, but instead ignored. 
+
+Examples
+MODE = Mode()
+MODE.config_verify("/var/www/html/app_folder/LocalSettings.php")
+
+datavol():
+This method will take 1 parameter being a package list. It will then configure the contianer to be a data volume container, and remove all of the packages sent in the dependancy list. This clears un-necessary services from the
+container to minimize resource utilization.
+
+Examples
+DEPLIST="php php-cli php-mysql"
+MODE = Mode()
+MODE.datavol(DEPLIST)
