@@ -1,0 +1,49 @@
+certs.py
+==================
+
+3 methods 
+
+cert_exists()
+This method will test to see if a generic cert exists already or not. If it does, returns true, if not returns false.
+Examples
+GEN_CERT = CertGen()
+EXISTS = GEN_CERT.cert_exists()
+
+alt_cert_exists(cert_name):
+This method will test to see if a custom cert exists already or not. If it does, returns true, if not returns false.
+Examples
+GEN_CERT = CertGen()
+EXISTS = GEN_CERT.custom_cert_exists("somecert.crt")
+(Looks in cert default path /etc/ssl/certs, or /etc/pki/tls/certs)
+
+generate_cert()
+This method will generate a generic self signed certificate. The self signed cert will use these default values:
+Key Size: 4096 
+Country: "US"
+State: "US"
+Location: "Some City"
+Org: environment variable $APP_NAME
+Org Unit: environment variable $APP_NAME
+Common Name: Container Host Name
+Encryption: "sha512"
+Cert Name:  environment variable $APP_NAME.crt
+
+Examples
+GEN_CERT = CertGen()
+GEN_CERT.generate_cert() 
+
+generate_custom_cert()
+This method will generate a custom self signed certificate. The self signed cert will use required sent values:
+Key Size: <Int Value>
+Country: <2 Char String Value>
+State: <2 Char String Value>
+Location: <String Value>
+Org: <String Value>
+Org Unit: <String Value>
+Common Name: <String Value>
+Encryption: <"sha256" or "sha512">
+Cert Name:  "file.crt"
+
+Examples
+GEN_CERT = CertGen()
+GEN_CERT.generate_custom_cert(keysize, country, state, loc, org, orgunit, common_name, encryption, cert_name)

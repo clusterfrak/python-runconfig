@@ -39,137 +39,129 @@ class CertTests(unittest.TestCase):
     def test_generate_cert(self):
         """Generate a certificate and ensure that the cert key and crt file were generated."""
         # Generate a generic certificate:
+        print("Generating Generic Cert...")
         self.cert_gen.generate_cert()
 
         # Ensure that the key file was created.
+        print("Validating generic key file was created...")
         assert os.path.exists(self.key_path + self.app_name + ".key") == 1
 
         # Ensure that the crt file was created.
+        print("Validating generic cert file was created...")
         assert os.path.exists(self.cert_path + self.app_name + ".crt") == 1
 
-    # def test_cert_exists(self):
-    #     """Assume the certificate for the app_name has been generated, return True, otherwise return false"""
-    #     # Test to check that the certificate from the previous test was generated.
-    #     self.assertTrue(self.cert_gen.cert_exists())
+        """Assume the certificate for the app_name has been generated, return True, otherwise return false"""
+        # Test to check that the certificate from the previous test was generated.
+        print("Validating that the Generic certificate exists...")
+        self.assertTrue(self.cert_gen.cert_exists())
 
-    # def test_generate_custom_cert(self):
-    #     """Create a custom cert 'bogus.crt'"""
-    #     # Generate a custom certificate with the following values:
-    #     keysize = 2048
-    #     city = "Raleigh"
-    #     state = "NC"
-    #     loc = "US"
-    #     org = "Bogus"
-    #     orgunit = "Bogus"
-    #     common_name = "www.bogus.com"
-    #     encryption = "sha256"
+    def test_generate_custom_cert(self):
+        """Create a custom cert 'bogus.crt'"""
+        # Generate a custom certificate with the following values:
+        print("Generating custom certificate key pair...")
+        keysize = 2048
+        country = "US"
+        state = "NC"
+        loc = "Raleigh"
+        org = "Bogus"
+        orgunit = "Bogus"
+        common_name = "www.bogus.com"
+        encryption = "sha256"
 
-    #     # Gen the Cert
-    #     self.cert_gen.generate_custom_cert(keysize, city, state, loc, org, orgunit, common_name, encryption, "bogus.crt")
+        # Gen the Cert
+        self.cert_gen.generate_custom_cert(keysize, country, state, loc, org, orgunit, common_name, encryption, "bogus.crt")
 
-    #     # Ensure that the key file was created.
-    #     assert os.path.exists(self.key_path + "bogus.key") == 1
+        # Ensure that the key file was created.
+        print("Validating custom key file was created...")
+        assert os.path.exists(self.key_path + "bogus.key") == 1
 
-    #     # Ensure that the crt file was created.
-    #     assert os.path.exists(self.cert_path + "bogus.crt") == 1
+        # Ensure that the crt file was created.
+        print("Validating custom cert file was created...")
+        assert os.path.exists(self.cert_path + "bogus.crt") == 1
 
-    #     # Test faulty keysize
-    #     keysize = "badkeysize"
+        print("Testing faulty values...")
+        # Test faulty keysize
+        keysize = "badkeysize"
 
-    #     # Gen the Cert
-    #     cert = self.cert_gen.generate_custom_cert(keysize, city, state, loc, org, orgunit, common_name, encryption, "bogusfail.crt")
-    #     cert_failure = cert.lines()
-    #     for line in cert_failure:
-    #         self.assertIn('Key Size must be a valid integer value', line, msg="A valid integer value was not passed in for keysize.")
+        # Gen the Cert
+        cert = self.cert_gen.generate_custom_cert(keysize, country, state, loc, org, orgunit, common_name, encryption, "bogusfail.crt")
+        self.assertIn('Key Size must be a valid integer value', cert, msg="A valid integer value was not passed in for keysize.")
 
-    #     # Test faulty City
-    #     keysize = 4096
-    #     city = 1234
+        # Test faulty country
+        keysize = 4096
+        country = 1234
 
-    #     # Gen the Cert
-    #     cert = self.cert_gen.generate_custom_cert(keysize, city, state, loc, org, orgunit, common_name, encryption, "bogusfail.crt")
-    #     cert_failure = cert.lines()
-    #     for line in cert_failure:
-    #         self.assertIn('City must be a valid string value', line, msg="A valid string value was not passed in for city.")
+        # Gen the Cert
+        cert = self.cert_gen.generate_custom_cert(keysize, country, state, loc, org, orgunit, common_name, encryption, "bogusfail.crt")
+        self.assertIn('Country must be a valid string value', cert, msg="A valid string value was not passed in for country.")
 
-    #     # Test faulty State
-    #     city = "Raleigh"
-    #     state = 1234
+        # Test faulty State
+        country = "US"
+        state = 1234
 
-    #     # Gen the Cert
-    #     cert = self.cert_gen.generate_custom_cert(keysize, city, state, loc, org, orgunit, common_name, encryption, "bogusfail.crt")
-    #     cert_failure = cert.lines()
-    #     for line in cert_failure:
-    #         self.assertIn('State must be a valid string value', line, msg="A valid string value was not passed in for state.")
+        # Gen the Cert
+        cert = self.cert_gen.generate_custom_cert(keysize, country, state, loc, org, orgunit, common_name, encryption, "bogusfail.crt")
+        self.assertIn('State must be a valid string value', cert, msg="A valid string value was not passed in for state.")
 
-    #     # Test faulty Location
-    #     state = "NC"
-    #     loc = 1234
+        # Test faulty Location
+        state = "NC"
+        loc = 1234
 
-    #     # Gen the Cert
-    #     cert = self.cert_gen.generate_custom_cert(keysize, city, state, loc, org, orgunit, common_name, encryption, "bogusfail.crt")
-    #     cert_failure = cert.lines()
-    #     for line in cert_failure:
-    #         self.assertIn('Location must be a valid string value', line, msg="A valid string value was not passed in for loc.")
+        # Gen the Cert
+        cert = self.cert_gen.generate_custom_cert(keysize, country, state, loc, org, orgunit, common_name, encryption, "bogusfail.crt")
+        self.assertIn('Location must be a valid string value', cert, msg="A valid string value was not passed in for loc.")
 
-    #     # Test faulty Organization
-    #     loc = "US"
-    #     org = 1234
+        # Test faulty Organization
+        loc = "Raleigh"
+        org = 1234
 
-    #     # Gen the Cert
-    #     cert = self.cert_gen.generate_custom_cert(keysize, city, state, loc, org, orgunit, common_name, encryption, "bogusfail.crt")
-    #     cert_failure = cert.lines()
-    #     for line in cert_failure:
-    #         self.assertIn('Organization must be a valid string value', line, msg="A valid string value was not passed in for org.")
+        # Gen the Cert
+        cert = self.cert_gen.generate_custom_cert(keysize, country, state, loc, org, orgunit, common_name, encryption, "bogusfail.crt")
+        self.assertIn('Organization must be a valid string value', cert, msg="A valid string value was not passed in for org.")
 
-    #     # Test faulty Organizational Unit
-    #     org = "Bogus"
-    #     orgunit = 1234
+        # Test faulty Organizational Unit
+        org = "Bogus"
+        orgunit = 1234
 
-    #     # Gen the Cert
-    #     cert = self.cert_gen.generate_custom_cert(keysize, city, state, loc, org, orgunit, common_name, encryption, "bogusfail.crt")
-    #     cert_failure = cert.lines()
-    #     for line in cert_failure:
-    #         self.assertIn('Organizational Unit must be a valid string value', line, msg="A valid string value was not passed in for orgunit.")
+        # Gen the Cert
+        cert = self.cert_gen.generate_custom_cert(keysize, country, state, loc, org, orgunit, common_name, encryption, "bogusfail.crt")
+        self.assertIn('Organizational Unit must be a valid string value', cert, msg="A valid string value was not passed in for orgunit.")
 
-    #     # Test faulty Common Name
-    #     orgunit = "Bogus"
-    #     common_name = 1223
+        # Test faulty Common Name
+        orgunit = "Bogus"
+        common_name = 1223
 
-    #     # Gen the Cert
-    #     cert = self.cert_gen.generate_custom_cert(keysize, city, state, loc, org, orgunit, common_name, encryption, "bogusfail.crt")
-    #     cert_failure = cert.lines()
-    #     for line in cert_failure:
-    #         self.assertIn('Common Name must be a valid string value', line, msg="A valid string value was not passed in for the common_name.")
+        # Gen the Cert
+        cert = self.cert_gen.generate_custom_cert(keysize, country, state, loc, org, orgunit, common_name, encryption, "bogusfail.crt")
+        self.assertIn('Common Name must be a valid string value', cert, msg="A valid string value was not passed in for the common_name.")
 
-    #     # Test faulty Encryption
-    #     common_name = "www.bogus.com"
-    #     encryption = 1234
+        # Test faulty Encryption
+        common_name = "www.bogus.com"
+        encryption = 1234
 
-    #     # Gen the Cert
-    #     cert = self.cert_gen.generate_custom_cert(keysize, city, state, loc, org, orgunit, common_name, encryption, "bogusfail.crt")
-    #     cert_failure = cert.lines()
-    #     for line in cert_failure:
-    #         self.assertIn('Encryption must be a valid string value', line, msg="A valid string value was not passed in for encryption.")
+        # Gen the Cert
+        cert = self.cert_gen.generate_custom_cert(keysize, country, state, loc, org, orgunit, common_name, encryption, "bogusfail.crt")
+        self.assertIn('Encryption must be a valid encrytion value such as sha256 or sha512', cert, msg="A valid string value was not passed in for encryption.")
 
-    # def test_alt_cert_exists(self):
-    #     """Test the existance of a cert that was not auto generated"""
-    #     # Test a certificate that does not yet exist.
-    #     self.assertFalse(self.cert_gen.alt_cert_exists("void.crt"))
+        """Test the existance of a cert that was not auto generated"""
+        # Test a certificate that does not yet exist.
+        print("Validating custom cert exists failure...")
+        self.assertFalse(self.cert_gen.custom_cert_exists("void.crt"))
 
-    #     # Test the custom cert we created in the previous test
-    #     self.assertTrue(self.cert_gen.alt_cert_exists("bogus.crt"))
+        # Test the custom cert we created in the previous test
+        print("Validating custom cert exists success...")
+        self.assertTrue(self.cert_gen.custom_cert_exists("bogus.crt"))
 
-    # def test_validate_cert(self):
-    #     """Validate the generic certificate created in an earlier test"""
-    #     # Test the custom cert we created in the previous test
-    #     self.assertTrue(self.cert_gen.validate_cert())
-
-    #     # Test custom cert created in an earlier test
-    #     self.assertTrue(self.cert_gen.validate_custom_cert("bogus.crt"))
-
-    #     # Test a fail case
-    #     self.assertFail(self.cert_gen.validate_custom_cert("void.crt"))
+    def tearDown(self):
+        """Perform file cleanup from tests"""
+        if os.path.isfile(self.cert_path + self.app_name + ".crt"):
+            os.remove(self.cert_path + self.app_name + ".crt")
+        if os.path.isfile(self.key_path + self.app_name + ".key"):
+            os.remove(self.key_path + self.app_name + ".key")
+        if os.path.isfile(self.cert_path + "bogus.crt"):
+            os.remove(self.cert_path + "bogus.crt")
+        if os.path.isfile(self.key_path + "bogus.key"):
+            os.remove(self.key_path + "bogus.key")
 
 if __name__ == '__main__':
     unittest.main()

@@ -7,7 +7,7 @@ from modules.log import Log
 from modules.mode import Mode
 
 # Import the application modules
-from modules.app_config import Apache
+from modules.apache import Apache
 
 # Instantiate the global variables.
 GLOBALS = Globals()
