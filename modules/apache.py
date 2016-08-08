@@ -108,15 +108,6 @@ class Apache():
         # Mark step complete
         INSTALL_LOG.step_complete()
 
-    
-
-
-
-
-
-
-
-
     def apache_app_config(self):
         """Configure Apache application files"""
         INSTALL_LOG.write_log_console("Configuring Apache application config files...", "")
@@ -132,23 +123,17 @@ class Apache():
             move(self.apache_dir + "sites-available/" + self.apache_app_conf, self.apache_dir + "sites-available/" + self.app_name + ".conf")
 
         # Remove default configs if debian based distro
-        if not GLOBALS.is_rhel:
-
+        if not GLOBALS.is_rhel():
             INSTALL_LOG.write_log("Disabling default debian based config files")
-            if os.path.isfile(self.apache_app_dir + "000-default.conf"):
+            if os.path.exists(self.apache_app_dir + "000-default.conf"):
                 os.unlink(self.apache_app_dir + "000-default.conf")
 
             INSTALL_LOG.write_log("Enabling the Apache application config")
-            if not os.path.isfile(self.apache_app_dir + self.app_name + ".conf"):
+            if not os.path.exists(self.apache_app_dir + self.app_name + ".conf"):
                 os.symlink(self.apache_dir + "sites-available/" + self.app_name + ".conf", self.apache_app_dir + self.app_name + ".conf")
 
         # Mark step complete
         INSTALL_LOG.step_complete()
-
-
-
-
-
 
     # def apache_certs():
     #     # Modify the configs to use the certificate.

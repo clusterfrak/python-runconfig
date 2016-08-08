@@ -81,6 +81,25 @@ class ApacheTests(unittest.TestCase):
                 servername_set = True
         self.assertTrue(servername_set)
 
+    def test_apache_app_config(self):
+        """Test the backup and modification to the main apache application conf'"""
+        self.apache.apache_app_config()
+
+        # Test to make sure that the ssl config file was moved
+        assert os.path.exists(self.apache_app_dir + "ssl.conf") == 0
+
+        if self.global_variables.is_rhel():
+            assert os.path.exists(self.apache_app_dir + "ssl.conf.disabled") == 1
+
+        # Test to ensure that the application apache config file was renamed properly.
+        assert os.path.exists(self.apache_dir + "sites-available/" + self.apache_app_conf) == 0
+        assert os.path.exists(self.apache_dir + "sites-available/" + self.app_name + ".conf") == 1
+
+        # If debian, make sure that default configs were or removed.
+        if not self.global_variables.is_rhel():
+            assert os.path.exists(self.apache_app_dir + "000-default.conf") == 0
+            assert os.path.exists(self.apache_app_dir + self.app_name + ".conf") == 1
+
     def tearDown(self):
         """Perform file cleanup from tests"""
         if os.path.isfile("/var/www/html/" + self.app_name + "/index.php"):
@@ -89,6 +108,23 @@ class ApacheTests(unittest.TestCase):
         # Move the original apache config back
         if os.path.isfile(self.apache_dir + self.apache_conf + ".orig"):
             move(self.apache_dir + self.apache_conf + ".orig", self.apache_dir + self.apache_conf)
+
+        # Move the SSL file back
+        if os.path.isfile(self.apache_app_dir + "ssl.conf.disabled"):
+            move(self.apache_app_dir + "ssl.conf.disabled", self.apache_app_dir + "ssl.conf")
+
+        # Rename the Application file back to its original name
+        if os.path.isfile(self.apache_dir + "sites-available/" + self.app_name + ".conf"):
+            os.unlink(self.apache_app_dir + self.app_name + ".conf")
+            move(self.apache_dir + "sites-available/" + self.app_name + ".conf", self.apache_dir + "sites-available/" + self.apache_app_conf)
+
+        # If debian, put the symlinks back to the way they originally were.
+        if not self.global_variables.is_rhel():
+            print("searching for " + self.apache_app_dir + self.app_name + ".conf")
+            if os.path.exists(self.apache_app_dir + self.app_name + ".conf"):
+                os.remove(self.apache_app_dir + self.app_name + ".conf")
+            if not os.path.exists(self.apache_app_dir + "000-default.conf"):
+                os.symlink(self.apache_dir + "sites-available/000-default.conf", self.apache_app_dir + "000-default.conf")
 
 if __name__ == '__main__':
     unittest.main()
